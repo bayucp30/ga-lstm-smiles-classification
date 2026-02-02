@@ -1,24 +1,13 @@
-def normalize_features(df, feature_columns, smiles_column="SMILES"):
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+
+def preprocess_features(X: pd.DataFrame):
     """
-    Normalize extracted features by SMILES length.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        DataFrame containing extracted features
-    feature_columns : list
-        List of feature column names
-    smiles_column : str
-        Column name for SMILES strings
-
-    Returns
-    -------
-    pandas.DataFrame
-        Normalized feature DataFrame
+    Standardize features using StandardScaler
     """
-    smiles_length = df[smiles_column].apply(len)
 
-    for col in feature_columns:
-        df[col] = (df[col] / smiles_length * 100).astype(int)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-    return df
+    return X_scaled

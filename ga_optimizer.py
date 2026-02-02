@@ -1,54 +1,110 @@
-# ga_optimizer.py
-
 import numpy as np
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.linear_model import LogisticRegression
 
-# 1. Population
-def init_population(pop_size, n_features):
-    return np.random.randint(0, 2, (pop_size, n_features))
 
-# 2. Selection
-def tournament_selection(population, fitness_scores, k=3):
-    idx = np.random.choice(len(population), k)
-    return population[idx[np.argmax(fitness_scores[idx])]]
+class GeneticAlgorithm:
+    def __init__(
+        self,
+        population_size=20,
+        generations=15,
+        mutation_rate=0.1,
+        random_state=42
+    ):
+        self.population_size = population_size
+        self.generations = generations
+        self.mutation_rate = mutation_rate
+        self.random_state = random_state
+        np.random.seed(self.random_state)
 
-# 3. Crossover
-def crossover(p1, p2, p=0.8):
-    if np.random.rand() > p:
-        return p1.copy(), p2.copy()
+    def _initialize_population(self, n_features):
+        return np.random.randint(
+            0, 2, size=(self.population_size, n_features)
+        )
 
-    point = np.random.randint(1, len(p1)-1)
-    return (
-        np.concatenate([p1[:point], p2[point:]]),
-        np.concatenate([p2[:point], p1[point:]])
-    )
+    def _fitness(self, X, y, chromosome):
+        if chromosome.sum() == 0:
+            return 0
 
-# 4. Mutation
-def mutation(chromosome, p=0.01):
-    for i in range(len(chromosome)):
-        if np.random.rand() < p:
-            chromosome[i] = 1 - chromosome[i]
-    return chromosome
+        X_selected = X[:, chromosome == 1]
 
-# 5. GA Engine
-def run_ga(X, y, fitness_fn,
-           pop_size=30, generations=40):
-    n_features = X.shape[1]
-    population = init_population(pop_size, n_features)
+        _, counts = np.unique(y, return_counts=True)
+        min_class = counts.min()
+        cv_splits = min(5, min_class)
 
-    for _ in range(generations):
-        fitness_scores = np.array([
-            fitness_fn(ch, X, y) for ch in population
+        if cv_splits < 2:
+            return 0
+
+        skf = StratifiedKFold(
+            n_splits=cv_splits,
+            shuffle=True,
+            random_state=self.random_state
+        )
+
+        model = LogisticRegression(max_iter=1000)
+
+        scores = cross_val_score(
+            model,
+            X_selected,
+            y,
+            cv=skf,
+            scoring="accuracy"
+        )
+
+        return scores.mean()
+
+    def _select(self, population, fitness_scores):
+        probs = fitness_scores / fitness_scores.sum()
+        idx = np.random.choice(
+            range(len(population)),
+            size=self.population_size,
+            p=probs
+        )
+        return population[idx]
+
+    def _crossover(self, parent1, parent2):
+        point = np.random.randint(1, len(parent1))
+        child = np.concatenate([
+            parent1[:point],
+            parent2[point:]
         ])
+        return child
 
-        new_pop = []
-        while len(new_pop) < pop_size:
-            p1 = tournament_selection(population, fitness_scores)
-            p2 = tournament_selection(population, fitness_scores)
-            c1, c2 = crossover(p1, p2)
-            new_pop.append(mutation(c1))
-            new_pop.append(mutation(c2))
+    def _mutate(self, chromosome):
+        for i in range(len(chromosome)):
+            if np.random.rand() < self.mutation_rate:
+                chromosome[i] = 1 - chromosome[i]
+        return chromosome
 
-        population = np.array(new_pop[:pop_size])
+    def fit(self, X, y):
+        n_features = X.shape[1]
+        population = self._initialize_population(n_features)
 
-    best_idx = np.argmax(fitness_scores)
-    return population[best_idx]
+        best_chromosome = None
+        best_score = -1
+
+        for _ in range(self.generations):
+            fitness_scores = np.array([
+                self._fitness(X, y, chrom)
+                for chrom in population
+            ])
+
+            if fitness_scores.max() > best_score:
+                best_score = fitness_scores.max()
+                best_chromosome = population[
+                    fitness_scores.argmax()
+                ]
+
+            selected = self._select(population, fitness_scores)
+
+            children = []
+            for i in range(0, self.population_size, 2):
+                p1, p2 = selected[i], selected[i + 1]
+                c1 = self._mutate(self._crossover(p1, p2))
+                c2 = self._mutate(self._crossover(p2, p1))
+                children.extend([c1, c2])
+
+            population = np.array(children)
+
+        selected_features = np.where(best_chromosome == 1)[0]
+        return selected_features, best_score
