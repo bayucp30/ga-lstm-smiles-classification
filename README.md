@@ -152,7 +152,8 @@ This combination showed improved stability compared to baseline models during ex
 ## 👤 Author
 
 **Bayu Chandra Putra**
-Data Analyst | Machine Learning Enthusiast
+
+Data Analyst | [LinkedIn](linkedin.com/bayuchandraputra)
 
 ---
 
