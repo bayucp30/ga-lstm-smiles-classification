@@ -1,4 +1,4 @@
-# 🧬 GA-LSTM for SMILES-Based Chemical Classification
+# GA-LSTM for SMILES-Based Chemical Classification
 
 This repository contains an end-to-end **machine learning pipeline** for **multi-class chemical compound classification** based on **SMILES representations**, combining:
 
@@ -27,7 +27,7 @@ The final model supports **multi-class classification** (3 classes) and demonstr
 
 ---
 
-## 🧠 Methodology
+## Methodology
 
 ### 1️⃣ Feature Extraction
 
@@ -116,7 +116,7 @@ python run_pipeline.py
 
 ---
 
-## 📊 Results
+## Results
 
 * **Task**: Multi-class classification (3 classes)
 * **Test Accuracy**: ~72–73%
@@ -132,7 +132,7 @@ Predicted classes (original): [3 3 3 2 1]
 
 ---
 
-## 🧪 Why GA + LSTM?
+## Why GA + LSTM?
 
 * **GA** efficiently searches large feature spaces and avoids greedy selection
 * **PCA** stabilizes GA search by reducing noise
@@ -142,14 +142,14 @@ This combination showed improved stability compared to baseline models during ex
 
 ---
 
-## 📌 Notes
+## Notes
 
 * This repository focuses on **pipeline design and modeling strategy**, not domain-specific chemistry interpretation
 * The implementation emphasizes **clean structure, reproducibility, and best practices**
 
 ---
 
-## 👤 Author
+## Author
 
 **Bayu Chandra Putra**
 
@@ -157,7 +157,7 @@ Data Analyst | [LinkedIn](linkedin.com/bayuchandraputra)
 
 ---
 
-## 📜 License
+## License
 
 This project is released for educational and portfolio purposes.
 
